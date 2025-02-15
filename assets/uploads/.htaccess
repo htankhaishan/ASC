@@ -1,4 +1,0 @@
-.htaccess# Prevent execution of PHP files
-<FilesMatch "\.php$">
-    deny from all
-</FilesMatch>

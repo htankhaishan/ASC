@@ -1,7 +1,7 @@
 <?php
-$host = "localhost";
+$host = "db";
 $username = "root";
-$password = "";
+$password = "root";
 $database = "owasp_demo";
 
 // Create a connection

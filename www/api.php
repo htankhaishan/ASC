@@ -3,7 +3,7 @@ require_once 'config.php'; // Include database connection
 header("Access-Control-Allow-Origin: *"); // Open CORS policy (OWASP A5)
 header("Content-Type: application/json");
 
-$conn = new mysqli("localhost", "root", "", "owasp_demo");
+$conn = new mysqli("db", "root", "root", "owasp_demo");
 
 if ($conn->connect_error) {
     die(json_encode(["error" => "Database connection failed"]));

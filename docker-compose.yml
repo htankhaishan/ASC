@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  web:
+    image: arm64v8/php:8.2-apache
+    container_name: web
+    restart: always
+    ports:
+      - "8000:80"
+    volumes:
+      - ./www:/var/www/html
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    command: >
+      bash -c "docker-php-ext-install mysqli && docker-php-ext-enable mysqli && apache2-foreground"
+
+  db:
+    image: mysql:8  # ✅ Supports both ARM64 & AMD64
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: owasp_demo
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./www/db.sql:/docker-entrypoint-initdb.d/db.sql  # ✅ Automatically runs db.sql
+
+  phpmyadmin:
+    image: arm64v8/phpmyadmin  # ✅ ARM64-compatible version
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
