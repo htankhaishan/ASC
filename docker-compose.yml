@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   web:
-    image: arm64v8/php:8.2-apache
+    image: php:8.2-apache
     container_name: web
     restart: always
     ports:
@@ -27,7 +27,7 @@ services:
       - ./www/db.sql:/docker-entrypoint-initdb.d/db.sql  # ✅ Automatically runs db.sql
 
   phpmyadmin:
-    image: arm64v8/phpmyadmin  # ✅ ARM64-compatible version
+    image: phpmyadmin/phpmyadmin  # ✅ ARM64-compatible version
     container_name: phpmyadmin
     restart: always
     ports:
