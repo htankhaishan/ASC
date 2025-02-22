@@ -9,13 +9,14 @@ services:
       - "8000:80"
     volumes:
       - ./www:/var/www/html
+      - ./www/assets/images:/var/www/html/assets/images  # Persist uploaded images
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
     command: >
       bash -c "docker-php-ext-install mysqli && docker-php-ext-enable mysqli && apache2-foreground"
 
   db:
-    image: mysql:8  # ✅ Supports both ARM64 & AMD64
+    image: mysql:8
     container_name: mysql_db
     restart: always
     environment:
@@ -24,10 +25,10 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./www/db.sql:/docker-entrypoint-initdb.d/db.sql  # ✅ Automatically runs db.sql
+      - ./www/db.sql:/docker-entrypoint-initdb.d/db.sql  # Automatically runs db.sql
 
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin  # ✅ ARM64-compatible version
+    image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin
     restart: always
     ports:

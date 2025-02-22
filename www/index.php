@@ -1,32 +1,103 @@
+<?php
+session_start();
+require_once 'config.php';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OWASP Top 10 Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Product Store</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
-    <h1>OWASP Top 10 Vulnerabilities Demo</h1>
-    <ul>
-        <li><strong>Confidentiality:</strong></li>
-        <li><a href="admin.php">1. Broken Access Control (A1) - Unauthorized Access</a></li>
-        <li><a href="login.php">2. Cryptographic Failures (A2) - Weak Password Storage</a></li>
-        <li><a href="products.php">3. Injection (A3) - SQL Injection</a></li>
-        <li><a href="insecure_login.php">4. Insecure Design (A4) - Credentials in URL</a></li>
-        <li><a href="forgot_password.php">5. Identification & Authentication Failures (A7) - Weak Password Reset</a></li>
-        <li><a href="ssrf.php">6. Server-Side Request Forgery (SSRF) (A10) - Unauthorized Internal Requests</a></li>
-        <br>
-        <li><strong>Integrity:</strong></li>
-        <li><a href="add_product.php">7. Injection (A3) - XSS</a></li>
-        <li><a href="api.php">8. Security Misconfiguration (A5) - API Misconfigurations</a></li>
-        <li><a href="vulnerable_components.php">9. Vulnerable & Outdated Components (A6) - Unpatched Software</a></li>
-        <li><a href="fake_update.php">10. Software & Data Integrity Failures (A8) - Fake Update</a></li>
-        <br>
-        <li><strong>Availability:</strong></li>
-        <li><a href="upload.php">11. Security Misconfiguration (A5) - Insecure File Upload</a></li>
-        <li><a href="login.php">12. Identification & Authentication Failures (A7) - Broken Authentication</a></li>
-        <li><a href="csrf.php">13. Identification & Authentication Failures (A7) - CSRF Attack</a></li>
-        <li><a href="no_logging.php">14. Security Logging & Monitoring Failures (A9) - No Detection of Attacks</a></li>
-    </ul>
+
+<div class="container mt-4">
+    <!-- Top Bar: Welcome on Left, Login on Right -->
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">Welcome to the Store</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
+    </div>
+
+    <hr>
+
+    <h3 class="mt-4">Available Products:</h3>
+    <div class="row">
+        <?php
+        $result = $conn->query("SELECT * FROM products");
+        while ($row = $result->fetch_assoc()) {
+            echo "<div class='col-lg-3 col-md-4 col-sm-6 mb-4'>";
+            echo "<div class='card h-100 text-center'>";
+            if (!empty($row['image'])) {
+                echo "<img src='uploads/{$row['image']}' class='card-img-top' alt='{$row['name']}'>";
+            }
+            echo "<div class='card-body'>";
+            echo "<h5 class='card-title'>{$row['name']}</h5>";
+            echo "<p class='card-text'>\${$row['price']} - Stock: {$row['quantity']}</p>";
+            echo "</div></div></div>";
+        }
+        ?>
+    </div>
+</div>
+
+<!-- ✅ Login Modal -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+                <p id="loginMessage" class="text-danger mt-2"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ✅ AJAX for Login -->
+<p id="loginMessage" style="color:red;"></p> <!-- Error messages here -->
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+    
+    var formData = new FormData(this);
+
+    fetch("login_process.php", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => {
+        if (data.trim() === "success") {
+            window.location.href = "admin.php"; // Redirect to admin page on success
+        } else {
+            document.getElementById("loginMessage").innerText = data; // Show error message
+        }
+    });
+});
+</script>
+
 </body>
 </html>

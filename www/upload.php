@@ -1,15 +1,30 @@
 <?php
 
 require_once 'config.php'; // Include database connection
-$uploadDir = "uploads/";
+$uploadDir = "assets/images/"; // Change upload directory
+
+// Ensure the directory exists
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0775, true);
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $fileName = basename($_FILES["file"]["name"]);
-    $uploadFile = $uploadDir . $fileName;
+    require_once 'config.php'; // Include database connection
 
-    // No file type validation (OWASP A8)
+    $fileName = basename($_FILES["file"]["name"]);
+    $uploadFile = "assets/images/" . $fileName;
+    $productName = $_POST['name'];
+    $productPrice = $_POST['price'];
+    $productQuantity = $_POST['quantity']; // New quantity input
+    $ownerId = 1; // Change based on logged-in user
+
     if (move_uploaded_file($_FILES["file"]["tmp_name"], $uploadFile)) {
-        echo "<p style='color:green;'>File uploaded: <a href='$uploadFile'>$fileName</a></p>";
+        $stmt = $conn->prepare("INSERT INTO products (name, price, owner_id, image, quantity) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sdiss", $productName, $productPrice, $ownerId, $uploadFile, $productQuantity);
+        $stmt->execute();
+        $stmt->close();
+
+        echo "<p style='color:green;'>File uploaded and product added.</p>";
     } else {
         echo "<p style='color:red;'>File upload failed.</p>";
     }
@@ -25,8 +40,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
     <h2>Upload a File</h2>
     <form method="POST" enctype="multipart/form-data">
+        <input type="text" name="name" placeholder="Product Name" required>
+        <input type="number" name="price" placeholder="Product Price" required>
+        <input type="number" name="quantity" placeholder="Quantity" required> <!-- New field -->
         <input type="file" name="file" required>
-        <button type="submit">Upload</button>
+        <button type="submit">Upload Product</button>
     </form>
 
     <h3>Try Uploading a Malicious File:</h3>
