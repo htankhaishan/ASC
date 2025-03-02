@@ -1,54 +1,27 @@
-<<<<<<< HEAD
-version: "3.8"
-
-services:
-  web:
-    image: php:8.2-apache
-    container_name: web
-    restart: always
-    ports:
-      - "8000:80"
-    volumes:
-      - ./www:/var/www/html
-      - ./www/assets/images:/var/www/html/assets/images  # Persist uploaded images
-    environment:
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
-    command: >
-      bash -c "docker-php-ext-install mysqli && docker-php-ext-enable mysqli && apache2-foreground"
-
-  db:
-    image: mysql:8
-    container_name: mysql_db
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: owasp_demo
-    ports:
-      - "3306:3306"
-    volumes:
-      - ./www/db.sql:/docker-entrypoint-initdb.d/db.sql  # Automatically runs db.sql
-
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin
-    restart: always
-    ports:
-      - "8080:80"
-    environment:
-      PMA_HOST: db
-      PMA_PORT: 3306
-=======
 version: '3.8'
 
 services:
-  php:
+  php_vulnerable:
     build: .
     platform: linux/amd64  # Force x86_64 architecture
     container_name: vulnerable_php_app
     ports:
       - "8080:80"
     volumes:
-      - .:/var/www/html
+      - ./vulnerable:/var/www/html
+    depends_on:
+      - mysql
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+
+  php_secure:
+    build: .
+    platform: linux/amd64  # Force x86_64 architecture
+    container_name: secure_php_app
+    ports:
+      - "8081:80"  # Exposing a different port for secure pages
+    volumes:
+      - ./secure:/var/www/html
     depends_on:
       - mysql
     environment:
@@ -70,4 +43,3 @@ services:
 
 volumes:
   mysql_data:
->>>>>>> 50cdf6c (Update-CVEs)
