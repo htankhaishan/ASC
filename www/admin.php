@@ -37,7 +37,7 @@ if (isset($_GET["logout"])) {
 
 <div class="container admin-container">
     <div class="admin-header">
-        <h2>Welcome to Admin Panel</h2>
+        <h2>Admin Inventory Management</h2>
         <a href="admin.php?logout=true" class="btn btn-danger">🚪 Logout</a>
     </div>
     <p><strong>Admin:</strong> <?php echo htmlspecialchars($_SESSION["user"]); ?></p>
@@ -46,31 +46,6 @@ if (isset($_GET["logout"])) {
         echo "<div class='alert alert-success'>" . htmlspecialchars($_GET["message"]) . "</div>";
     } ?>
 
-    <!-- Manage Users -->
-    <h3>Manage Users</h3>
-    <div class="d-flex align-items-center mb-3">
-        <a href='add_user.php' class="btn btn-primary">➕ Add New User</a>
-        <input type="text" id="searchUser" class="form-control search-box" placeholder="Search Users...">
-    </div>
-    <table class='table table-bordered' id="userTable">
-        <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Actions</th></tr>
-        <?php
-        $result = $conn->query("SELECT id, username, email, role FROM users");
-        while ($row = $result->fetch_assoc()) {
-            echo "<tr>
-                    <td>" . htmlspecialchars($row['id']) . "</td>
-                    <td>" . htmlspecialchars($row['username']) . "</td>
-                    <td>" . htmlspecialchars($row['email']) . "</td>
-                    <td>" . htmlspecialchars($row['role']) . "</td>
-                    <td>
-                        <a href='edit_user.php?id=" . urlencode($row['id']) . "' class='btn btn-warning btn-sm'>✏️ Edit</a>
-                        <a href='delete_users.php?id=" . urlencode($row['id']) . "' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure?\")'>🗑️ Delete</a>
-                    </td>
-                  </tr>";
-        }
-        ?>
-    </table>
-    
     <!-- Manage Products -->
     <h3>Manage Products</h3>
     <div class="d-flex align-items-center mb-3">
@@ -100,10 +75,42 @@ if (isset($_GET["logout"])) {
         }
         ?>
     </table>
+
+    <!-- Manage Users -->
+    <h3>Manage Users</h3>
+    <div class="d-flex align-items-center mb-3">
+        <a href='add_user.php' class="btn btn-primary">➕ Add New User</a>
+        <input type="text" id="searchUser" class="form-control search-box" placeholder="Search Users...">
+    </div>
+    <table class='table table-bordered' id="userTable">
+        <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Actions</th></tr>
+        <?php
+        $users = $conn->query("SELECT * FROM users");
+        while ($user = $users->fetch_assoc()) {
+            echo "<tr id='user-row-" . htmlspecialchars($user['id']) . "'>
+                    <td>" . htmlspecialchars($user['id']) . "</td>
+                    <td>" . htmlspecialchars($user['username']) . "</td>
+                    <td>" . htmlspecialchars($user['email']) . "</td>
+                    <td>" . htmlspecialchars($user['role']) . "</td>
+                    <td>
+                        <a href='edit_user.php?id=" . urlencode($user['id']) . "' class='btn btn-warning btn-sm'>✏️ Edit</a>
+                        <button class='btn btn-danger btn-sm delete-user-btn' data-id='" . htmlspecialchars($user['id']) . "'>🗑️ Delete</button>
+                    </td>
+                  </tr>";
+        }
+        ?>
+    </table>
 </div>
 
 <script>
     $(document).ready(function() {
+        $("#searchProduct").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#productTable tr").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+            });
+        });
+
         $("#searchUser").on("keyup", function() {
             var value = $(this).val().toLowerCase();
             $("#userTable tr").filter(function() {
@@ -111,27 +118,29 @@ if (isset($_GET["logout"])) {
             });
         });
 
-        $("#searchProduct").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#productTable tr").filter(function() {
-                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-            });
-        });
-    });
+        $(document).on("click", ".delete-user-btn", function() {
+            var userId = $(this).data("id");
 
-    $(document).on("click", ".delete-btn", function() {
-        var productId = $(this).data("id");
-        if (confirm("Are you sure you want to delete this product?")) {
-            $.ajax({
-                url: "delete_product.php",
-                type: "POST",
-                data: { id: productId },
-                success: function(response) {
-                    alert(response);
-                    $("#row-" + productId).fadeOut();
-                }
-            });
-        }
+            if (confirm("Are you sure you want to delete this user?")) {
+                $.ajax({
+                    url: "delete_user.php",
+                    type: "POST",
+                    data: { id: userId },
+                    dataType: "json",
+                    success: function(response) {
+                        if (response.status === "success") {
+                            alert(response.message);
+                            $("#user-row-" + userId).fadeOut();
+                        } else {
+                            alert("Error: " + response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert("AJAX Error: " + xhr.responseText);
+                    }
+                });
+            }
+        });
     });
 </script>
 

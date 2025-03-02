@@ -3,26 +3,26 @@ session_start();
 require_once 'config.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST["username"]);
-    $password = trim($_POST["password"]); // Trim to remove unwanted spaces
+    $username = $_POST["username"]; // ❌ No input sanitization
+    $password = $_POST["password"]; // ❌ No input sanitization
 
     if (empty($username) || empty($password)) {
         echo "❌ Username or password is empty!";
         exit();
     }
 
-    $stmt = $conn->prepare("SELECT id, username, password, role FROM users WHERE username = ?");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    // ❌ Direct SQL query (SQL Injection vulnerability)
+    $result = $conn->query("SELECT id, username, password, role FROM users WHERE username = '$username'");
     $user = $result->fetch_assoc();
 
     if ($user) {
-        // Direct plaintext comparison (⚠️ NOT SECURE)
+        // ❌ Plaintext password comparison (No hashing)
         if ($password === $user["password"]) {
             $_SESSION["user"] = $user["username"];
             $_SESSION["role"] = $user["role"];
-            echo "success"; // Ensure AJAX gets only "success"
+            $_SESSION["user_id"] = $user["id"]; // Store user ID for orders
+
+            echo "success"; // Response for AJAX
         } else {
             echo "❌ Invalid password!";
         }
