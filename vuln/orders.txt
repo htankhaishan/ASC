@@ -1,0 +1,8 @@
+Order confirmed for curl -X POST http://localhost/checkout.php \      -d "email=$(python3 -c "print(A * 10000000)")"
+Order confirmed for curl -X POST http://localhost/checkout.php \      -d "email=$(head -c 50000000 </dev/zero | tr 0 A)"
+Order confirmed for php -i | grep memory_limit
+Order confirmed for curl -X POST http://localhost/checkout.php -d "email=$(head -c 200000000 /dev/zero | tr 0 A)"
+Order confirmed for curl -X POST http://localhost/checkout.php -d "email=$(head -c 200000000 /dev/zero | tr 0 A)"
+Order confirmed for curl -X POST http://localhost/checkout.php -d "age=999999999999999999999999"
+Order confirmed for curl -X POST http://localhost/checkout.php -d "email=test@mail.com&age=999999999999999999999999"
+Order confirmed for curl -X POST http://localhost/checkout.php -d "email=test@mail.com&age=999999999999999999999999"
