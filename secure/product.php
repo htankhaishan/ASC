@@ -1,6 +1,6 @@
 <?php
 session_start();
-$mysqli = new mysqli("mysql", "root", "root", "ecommerce");
+$mysqli = new mysqli("secure_mysql", "root", "root", "ecommerce");
 
 // 🚨 No validation, still vulnerable to SQL Injection
 $id = isset($_GET['id']) ? $_GET['id'] : 1; // Default to 1 if 'id' is missing

@@ -1,40 +1,52 @@
 <?php
 session_start();
-$mysqli = new mysqli("mysql", "root", "root", "ecommerce");
+$mysqli = new mysqli("secure_mysql", "root", "root", "ecommerce");
 
 if ($mysqli->connect_error) {
     die("Connection failed: " . $mysqli->connect_error);
 }
 
-// Ensure a test user exists
-$mysqli->query("INSERT INTO users (id, username, password, email) VALUES (1, 'testuser', 'password', 'test@example.com') ON DUPLICATE KEY UPDATE id=id;");
+// Ensure a user exists
+$stmt = $mysqli->prepare("INSERT INTO users (id, username, password, email) 
+                          VALUES (1, 'testuser', 'password', 'test@example.com') 
+                          ON DUPLICATE KEY UPDATE id=id;");
+$stmt->execute();
 
-// Check the product_id from POST request
+// Ensure user is logged in (Replace with real authentication check)
+$user_id = 1; // Simulating a logged-in user
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $product_id = $_POST['product_id'];
 
-    // Check if product exists in the products table
-    $check_product = $mysqli->query("SELECT id FROM products WHERE id = $product_id");
+    // Secure: Use Prepared Statements to prevent SQL injection and Blacklisting Product
+    $stmt = $mysqli->prepare("SELECT id FROM products WHERE id = ? AND name != 'Product X'");
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    // If no product found, display an error message and stop the script
-    if ($check_product->num_rows == 0) {
-        die("Invalid product ID.");
+    // Secure: Ensure product is not restricted (prevents IDOR)
+    if ($result->num_rows === 0) {
+        die("Invalid product ID or unauthorized access.");
     }
 
-    // Insert into cart if product exists
-    if (!$mysqli->query("INSERT INTO cart (user_id, product_id) VALUES (1, $product_id)")) {
-        die("Insert Error: " . $mysqli->error);
+    // Secure: Use Prepared Statements to insert into cart
+    $stmt = $mysqli->prepare("INSERT INTO cart (user_id, product_id) VALUES (?, ?)");
+    $stmt->bind_param("ii", $user_id, $product_id);
+    
+    if (!$stmt->execute()) {
+        die("Insert Error: " . $stmt->error);
     }
 }
 
-// Fetch cart items
-$cart_items = $mysqli->query("SELECT products.name, products.price FROM cart JOIN products ON cart.product_id = products.id");
-
-// Debugging: Check if query failed
-if (!$cart_items) {
-    die("Query Error: " . $mysqli->error);
-}
+// Fetch cart items securely
+$stmt = $mysqli->prepare("SELECT products.name, products.price FROM cart 
+                          JOIN products ON cart.product_id = products.id 
+                          WHERE cart.user_id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$cart_items = $stmt->get_result();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,7 +78,7 @@ if (!$cart_items) {
 
         <br>
         <div>
-            <h2>Add Item to Cart (IDOR)</h2>
+            <h2>Add Item to Cart</h2>
             <form method="post">
                 <div class="mb-3">
                     <label for="product_id" class="form-label">Product ID:</label>
@@ -75,10 +87,9 @@ if (!$cart_items) {
                 <button type="submit" class="btn btn-primary">Add to Cart</button>
             </form>
         </div>
-
     </div>
 
-    <!-- Bootstrap JS (optional for additional functionality) -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

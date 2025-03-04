@@ -1,7 +1,7 @@
 <?php
 // index.php - Home Page (Vulnerable Web App)
 session_start();
-$mysqli = new mysqli("mysql", "root", "root", "ecommerce");
+$mysqli = new mysqli("secure_mysql", "root", "root", "ecommerce");
 if ($mysqli->connect_error) {
     die("Connection failed: " . $mysqli->connect_error);
 }
@@ -20,7 +20,7 @@ $products = $mysqli->query("SELECT * FROM products WHERE name != 'Product X'");
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center">Welcome to Vulnerable E-Commerce</h1>
+        <h1 class="text-center">Welcome to E-Commerce</h1>
         
         <!-- Product List -->
         <h2>Products</h2>

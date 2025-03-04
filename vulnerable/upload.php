@@ -2,25 +2,21 @@
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['image'])) {
     $upload_dir = __DIR__ . '/uploads/';  // Set upload directory path
     $target = $upload_dir . basename($_FILES['image']['name']);
-
+    
     // Ensure the uploads directory exists
     if (!is_dir($upload_dir)) {
         mkdir($upload_dir, 0777, true);
     }
-
     if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
         echo "<div class='alert alert-success'>File uploaded successfully!</div><br>";
-
-        // 🚨 Vulnerable: ExifTool used without sanitization
+        // Vulnerable: ExifTool used without sanitization
         $output = shell_exec("exiftool " . escapeshellarg($target));
-
         echo "<pre>$output</pre>";
     } else {
         echo "<div class='alert alert-danger'>Failed to upload file.</div>";
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>

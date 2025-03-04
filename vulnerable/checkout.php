@@ -3,9 +3,9 @@ ini_set('memory_limit', '512M');
 ini_set('post_max_size', '500M');
 
 session_start();
-$mysqli = new mysqli("mysql", "root", "root", "ecommerce");
+$mysqli = new mysqli("vulnerable_mysql", "root", "root", "ecommerce");
 
-// 🚨 Vulnerability: Command Injection (CVE-2023-5678)
+//  Vulnerability: Command Injection (CVE-2023-5678)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
     shell_exec("echo 'Order confirmed for $email' >> orders.txt"); // No input validation

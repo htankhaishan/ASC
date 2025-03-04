@@ -1,45 +1,52 @@
-version: '3.8'
-
 services:
-  php_vulnerable:
-    build: .
-    platform: linux/amd64  # Force x86_64 architecture
-    container_name: vulnerable_php_app
+  vulnerable_mysql:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ecommerce_vulnerable
+    volumes:
+      - ./vulnerable/db.sql:/docker-entrypoint-initdb.d/db.sql
+
+  secure_mysql:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ecommerce_secure
+    volumes:
+      - ./secure/db.sql:/docker-entrypoint-initdb.d/db.sql
+
+  vulnerable_php_app:
+    build:
+      context: .  # Use the current directory
+      dockerfile: Dockerfile
+    restart: always
     ports:
       - "8080:80"
     volumes:
       - ./vulnerable:/var/www/html
     depends_on:
-      - mysql
+      - vulnerable_mysql
     environment:
-      - APACHE_DOCUMENT_ROOT=/var/www/html
+      MYSQL_HOST: vulnerable_mysql
+      MYSQL_DATABASE: ecommerce_vulnerable
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
 
-  php_secure:
-    build: .
-    platform: linux/amd64  # Force x86_64 architecture
-    container_name: secure_php_app
+  secure_php_app:
+    build:
+      context: .  # Use the same Dockerfile for secure
+      dockerfile: Dockerfile
+    restart: always
     ports:
-      - "8081:80"  # Exposing a different port for secure pages
+      - "8081:80"
     volumes:
       - ./secure:/var/www/html
     depends_on:
-      - mysql
+      - secure_mysql
     environment:
-      - APACHE_DOCUMENT_ROOT=/var/www/html
-
-  mysql:
-    image: mysql:5.7
-    container_name: vulnerable_mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: ecommerce
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./db.sql:/docker-entrypoint-initdb.d/db.sql
-
-volumes:
-  mysql_data:
+      MYSQL_HOST: secure_mysql
+      MYSQL_DATABASE: ecommerce_secure
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
